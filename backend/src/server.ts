@@ -21,6 +21,12 @@ export const connection = new IORedis({
   maxRetriesPerRequest: null,
 });
 
+const subscriber = new IORedis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379'),
+  maxRetriesPerRequest: null,
+});
+
 export const telemetryQueue = new Queue('telemetry-ingest', { connection });
 
 const TelemetrySchema = z.object({
@@ -51,42 +57,81 @@ app.post('/api/telemetry/ingest', async (req, res) => {
   return res.status(202).json({ status: 'Accepted' });
 });
 
+async function fetchGridStateData() {
+  const allDts = await db.select().from(dts);
+  const allPoles = await db.select().from(poles);
+  const allStates = await connection.hgetall('pole:states');
+  
+  const mappedPoles = allPoles.map(p => {
+    let state = 'unknown';
+    if (p.deviceId && allStates[p.deviceId]) {
+      state = allStates[p.deviceId];
+    }
+    return {
+      id: p.id,
+      dtId: p.dtId,
+      lat: p.lat,
+      lon: p.lon,
+      deviceId: p.deviceId,
+      state
+    };
+  });
+
+  const edges = [];
+  for (const dt of allDts) {
+    const dtPoles = allPoles.filter(p => p.dtId === dt.id);
+    const topology = getTopology(dt.id, { lat: dt.lat, lon: dt.lon }, dtPoles as any);
+    edges.push(...topology);
+  }
+
+  return { dts: allDts, poles: mappedPoles, edges };
+}
+
+async function fetchIncidentsData() {
+  const incidentsJson = await connection.get('active_incidents');
+  if (incidentsJson) {
+    return JSON.parse(incidentsJson);
+  }
+  return { incidents: [], hardwareIssues: [] };
+}
+
+const sseClients = new Set<express.Response>();
+
+subscriber.subscribe('state_updates');
+subscriber.on('message', async (channel, message) => {
+  if (channel === 'state_updates') {
+    if (sseClients.size === 0) return;
+    const gridState = await fetchGridStateData();
+    const incidents = await fetchIncidentsData();
+    const data = JSON.stringify({ gridState, activeIncidents: incidents });
+    for (const client of sseClients) {
+      client.write(`data: ${data}\n\n`);
+    }
+  }
+});
+
+app.get('/api/stream/state', async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  sseClients.add(res);
+
+  // Send initial data
+  const gridState = await fetchGridStateData();
+  const incidents = await fetchIncidentsData();
+  res.write(`data: ${JSON.stringify({ gridState, activeIncidents: incidents })}\n\n`);
+
+  req.on('close', () => {
+    sseClients.delete(res);
+  });
+});
+
 app.get('/api/grid/state', async (req, res) => {
   try {
-    const allDts = await db.select().from(dts);
-    const allPoles = await db.select().from(poles);
-    
-    // Fetch all states from Redis
-    const allStates = await connection.hgetall('pole:states');
-    
-    const mappedPoles = allPoles.map(p => {
-      let state = 'unknown';
-      if (p.deviceId && allStates[p.deviceId]) {
-        state = allStates[p.deviceId];
-      }
-      return {
-        id: p.id,
-        dtId: p.dtId,
-        lat: p.lat,
-        lon: p.lon,
-        deviceId: p.deviceId,
-        state
-      };
-    });
-
-    // Compute topology for each DT
-    const edges = [];
-    for (const dt of allDts) {
-      const dtPoles = allPoles.filter(p => p.dtId === dt.id);
-      const topology = getTopology(dt.id, { lat: dt.lat, lon: dt.lon }, dtPoles as any);
-      edges.push(...topology);
-    }
-
-    res.json({
-      dts: allDts,
-      poles: mappedPoles,
-      edges
-    });
+    const data = await fetchGridStateData();
+    res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -94,12 +139,8 @@ app.get('/api/grid/state', async (req, res) => {
 
 app.get('/api/incidents/active', async (req, res) => {
   try {
-    const incidentsJson = await connection.get('active_incidents');
-    if (incidentsJson) {
-      res.json(JSON.parse(incidentsJson));
-    } else {
-      res.json({ incidents: [], hardwareIssues: [] });
-    }
+    const data = await fetchIncidentsData();
+    res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
