@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useStore } from '../store';
 import { useMapScale } from '../hooks/useMapScale';
+import styles from './SVGVisualizer.module.css';
 
 export function SVGVisualizer() {
   const { gridState, activeIncidents } = useStore();
@@ -22,21 +23,21 @@ export function SVGVisualizer() {
 
   if (!gridState) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-gray-900 text-gray-400">
+      <div className={styles.loadingContainer}>
         Connecting to stream...
       </div>
     );
   }
 
   const getPoleColor = (state: string, id: string) => {
-    if (faultPoleIds.has(id)) return '#ef4444'; // Red for faults
-    if (state === 'live') return '#22c55e'; // Green
-    if (state === 'dark') return '#ef4444'; // Red
-    return '#9ca3af'; // Gray unknown
+    if (faultPoleIds.has(id)) return 'var(--color-red-500)'; // Red for faults
+    if (state === 'live') return 'var(--color-green-500)'; // Green
+    if (state === 'dark') return 'var(--color-red-500)'; // Red
+    return 'var(--color-text-secondary)'; // Gray unknown
   };
 
   return (
-    <svg width={width} height={height} className="bg-gray-950 absolute inset-0 -z-10">
+    <svg width={width} height={height} className={styles.svgCanvas}>
       <defs>
         <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563" />
@@ -45,12 +46,10 @@ export function SVGVisualizer() {
 
       {/* Draw Edges */}
       {gridState.edges.map((edge, i) => {
-        if (!edge.parentPoleId) return null; // Parent is DT, handled similarly but DT coordinates aren't in pole lookup.
+        if (!edge.parentPoleId) return null; 
         
         const childPole = gridState.poles.find(p => p.id === edge.childPoleId);
-        // If parent is a pole
         let parentNode = gridState.poles.find(p => p.id === edge.parentPoleId) as any;
-        // If parent is not a pole, it might be a DT
         if (!parentNode) {
           parentNode = gridState.dts.find(d => d.id === edge.parentPoleId);
         }
@@ -72,7 +71,7 @@ export function SVGVisualizer() {
             y1={y1}
             x2={x2}
             y2={y2}
-            stroke="#4b5563"
+            stroke="var(--color-text-muted)"
             strokeWidth="2"
             strokeDasharray={isSurveyed ? "none" : (isAmbiguous ? "4 4" : "8 4")}
             opacity={0.6}
@@ -88,8 +87,8 @@ export function SVGVisualizer() {
           y={scaleY(dt.lat) - 8}
           width="16"
           height="16"
-          fill="#3b82f6" // Blue for DT
-          stroke="#1e3a8a"
+          fill="var(--color-blue-500)" // Blue for DT
+          stroke="var(--color-blue-900)"
           strokeWidth="2"
         />
       ))}
@@ -102,7 +101,7 @@ export function SVGVisualizer() {
           cy={scaleY(pole.lat)}
           r="4"
           fill={getPoleColor(pole.state, pole.id)}
-          stroke="#1f2937"
+          stroke="var(--color-bg-panel-border)"
           strokeWidth="1"
         />
       ))}

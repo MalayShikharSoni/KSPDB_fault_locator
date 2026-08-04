@@ -3,6 +3,7 @@ import { useStore } from './store';
 import { SVGVisualizer } from './components/SVGVisualizer';
 import { SimulatorPanel } from './components/SimulatorPanel';
 import { IncidentDashboard } from './components/IncidentDashboard';
+import styles from './App.module.css';
 
 function App() {
   const { initStream } = useStore();
@@ -12,7 +13,7 @@ function App() {
   }, [initStream]);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-gray-950 font-sans">
+    <div className={styles.appContainer}>
       <SVGVisualizer />
       <SimulatorPanel />
       <IncidentDashboard />

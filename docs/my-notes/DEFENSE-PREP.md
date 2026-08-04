@@ -38,3 +38,6 @@ A: Polling creates massive HTTP overhead, and WebSockets represent a complex bi-
 
 **Q: Why build a custom SVG Visualizer instead of using React Flow or D3?**
 A: Graph libraries are heavily bloated (React Flow is ~50kb+ gzipped) and introduce complex virtual DOM overhead for large datasets. By translating the raw Lat/Lon coordinates via a simple linear mathematical scaling function (`useMapScale`) and rendering native SVG primitives, we maintain absolute control over the render cycle, ensure hyper-responsive scaling, and keep the bundle size minimal.
+
+**Q: Why use native CSS Modules instead of Tailwind CSS?**
+A: To strictly align with our "native-first, zero-dependency" philosophy. While utility-first frameworks like Tailwind are fast for prototyping, native CSS Modules enforce true component-level style encapsulation and scoping without any external build tooling overhead. It demonstrates our ability to construct robust, maintainable vanilla CSS architectures rather than relying on framework abstractions.

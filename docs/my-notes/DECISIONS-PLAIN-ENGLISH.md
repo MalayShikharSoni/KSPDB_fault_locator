@@ -51,3 +51,7 @@
 ## 13. Custom SVG Visualizer via Linear Affine Transformation
 **Decision**: We built a custom `<svg>` visualizer natively in React, mapping geographic coordinates (Lat/Lon) to pixels using a simple flat linear projection (scaling based on the bounding box), rather than pulling in D3.js or a heavy map library.
 **Why**: Since our grid is a localized geometry spanning only a few kilometers, Earth's curvature distortion is negligible. A simple affine transform perfectly translates the coordinates to a 2D viewBox. Building this natively with basic primitives (`<line>`, `<circle>`) keeps the JS bundle ultra-lightweight and demonstrates absolute control over the DOM.
+
+## 14. Native CSS Modules over Tailwind CSS
+**Decision**: We strategically pivoted away from Tailwind CSS utility classes to purely native CSS Modules (`*.module.css`) for all frontend styling.
+**Why**: To fully align with our "native-first, zero-dependency" engineering philosophy. CSS Modules enforce strict component-level scope encapsulation without the build-time overhead or bundle bloat of a utility framework, demonstrating fundamental CSS architecture mastery.
