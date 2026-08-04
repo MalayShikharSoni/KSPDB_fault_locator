@@ -39,3 +39,7 @@
 ## 10. Per-Message Localization Execution (MVP Trade-off)
 **Decision**: In this MVP, the worker triggers the full `localizeFaults` DFS tree traversal immediately after updating state for *every* valid, deduplicated message.
 **Why**: This makes the system extremely deterministic and easy to unit test for the assignment. **Trade-off**: In a production environment with high throughput, executing the DFS on every single message is computationally heavy. We would realistically implement a debounce or batching window (e.g., waiting 500ms after the first telemetry event on a DT before running the localization algorithm once on the aggregated states).
+
+## 11. Caching Incidents in Redis for Read-Heavy Endpoints
+**Decision**: The `/api/incidents/active` API reads directly from a JSON string cached in Redis (`active_incidents`), which is updated by the queue worker.
+**Why**: Compute on write, optimize for read. It is vastly more scalable to have the worker do the heavy lifting of the DFS graph traversal and dump the answer in a fast cache, rather than forcing the Express endpoint to re-calculate the topology and incidents every time the frontend polls for active faults.

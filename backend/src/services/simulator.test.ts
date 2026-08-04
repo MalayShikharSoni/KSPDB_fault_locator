@@ -80,7 +80,7 @@ describe('Fault Simulator', () => {
     
     simulator.clearEvents();
 
-    simulator.repairFault(faultId);
+    await simulator.repairFault(faultId);
     events = simulator.getEvents();
 
     // 100 poles * 2 events each (boot, power_restored) = 200 events
@@ -98,15 +98,15 @@ describe('Fault Simulator', () => {
     expect(dev0Events[1].energized).toBe(true);
   });
 
-  it('4. Noise Injection creates duplicate burst with same seq', () => {
+  it('4. Noise Injection creates duplicate burst with same seq', async () => {
     // Generate initial event so seq is > 3
     for (let i=0; i<4; i++) {
         // We use a private method to simulate prior normal events
-        (simulator as any).emitTelemetry('DEV-BURST', 'power_lost', false);
+        await (simulator as any).emitTelemetry('DEV-BURST', 'power_lost', false);
     }
     simulator.clearEvents();
 
-    simulator.injectDuplicateBurst('DEV-BURST');
+    await simulator.injectDuplicateBurst('DEV-BURST');
     const events = simulator.getEvents();
     
     // Should have 5 duplicates + 1 old out-of-order = 6 events

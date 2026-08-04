@@ -74,6 +74,9 @@ export const telemetryWorker = new Worker('telemetry-ingest', async (job: Job) =
     
     const result = localizeFaults(topology, poleIdToState);
     
+    // Cache the result in Redis for the frontend
+    await connection.set('active_incidents', JSON.stringify(result));
+    
     // In a real system, we would compare `result` with previous incidents and generate/update Tickets here
     if (result.incidents.length > 0 || result.hardwareIssues.length > 0) {
       // console.log(`[DT: ${dtId}] Detected ${result.incidents.length} incidents, ${result.hardwareIssues.length} hardware issues.`);

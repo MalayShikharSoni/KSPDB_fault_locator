@@ -1,4 +1,4 @@
-# Defense Prep (Phase 1, 2, 3, 4 & 5)
+# Defense Prep (Phase 1, 2, 3, 4, 5 & 6)
 
 **Q: Why use Postgres and Drizzle instead of a NoSQL DB like MongoDB for this?**
 A: The physical reality of the domain is highly relational and specifically a tree structure. We need strict constraints (a pole belongs to exactly one DT) and ACID transactions when updating state. Postgres recursive CTEs (Common Table Expressions) allow us to traverse the tree efficiently in a single query, which would require multiple round trips or cumbersome document embedding in NoSQL.
@@ -29,3 +29,6 @@ A: When a feeder trips, thousands of poles send telemetry simultaneously. If we 
 
 **Q: If `localizeFaults` is computationally heavy, why trigger it on every single message in the queue?**
 A: For the scope of this MVP assignment, doing it per-message ensures deterministic state transitions for testing. However, in a real massive-scale production environment, doing heavy graph traversals on every message is unscalable. We would introduce a debouncing mechanism—buffering events for a DT and waiting ~500ms after the first event to allow the cascade to settle before running the localization logic once.
+
+**Q: Why cache the incidents in Redis instead of having the endpoint calculate them?**
+A: Compute on write, optimize for read. It is vastly more scalable to have the worker do the heavy lifting of the DFS graph traversal and dump the answer in a fast cache. This ensures the Express endpoint (`GET /api/incidents/active`) returns instantly, even if a frontend dashboard is polling it every second.

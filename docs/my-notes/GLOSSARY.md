@@ -17,3 +17,4 @@
 - **Simulator**: An internal engine designed to inject faults (span, DT, feeder) and generate realistic, imperfect telemetry payloads, modeling real-world noise like capacitor failures and bad firmware.
 - **Ingestion Queue**: A high-throughput Redis-backed message queue (BullMQ) that buffers incoming telemetry spikes before processing.
 - **Deduplication Filter**: A worker mechanism that drops incoming telemetry payloads if their sequence number is equal to or older than the highest sequence number currently stored in Redis for that device.
+- **Client API**: The set of REST endpoints providing real-time data access to the frontend, primarily querying cached Redis state rather than heavy SQL execution.

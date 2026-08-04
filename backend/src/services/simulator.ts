@@ -2,6 +2,16 @@ import { db } from '../db';
 import { poles, dts, feeders } from '../db/schema';
 import { eq, inArray } from 'drizzle-orm';
 import { getTopology, TopologyEdge } from './topology';
+import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
+
+const connection = new IORedis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379'),
+  maxRetriesPerRequest: null,
+});
+
+const telemetryQueue = new Queue('telemetry-ingest', { connection });
 
 export type TelemetryPayload = {
   device_id: string;
@@ -45,7 +55,7 @@ export class TelemetrySimulator {
     return 0;
   }
 
-  private emitTelemetry(deviceId: string, event: 'boot' | 'power_lost' | 'power_restored', energized: boolean, fw?: string) {
+  private async emitTelemetry(deviceId: string, event: 'boot' | 'power_lost' | 'power_restored', energized: boolean, fw?: string) {
     const seq = event === 'boot' ? this.resetSeq(deviceId) : this.getNextSeq(deviceId);
     
     const payload: TelemetryPayload = {
@@ -58,7 +68,14 @@ export class TelemetrySimulator {
     };
 
     this.generatedEvents.push(payload);
-    // In Phase 5, we would POST this to the queue. For now, we store it in memory.
+    
+    // Push to the queue natively
+    await telemetryQueue.add('process-telemetry', payload, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 1000 },
+      removeOnComplete: 100,
+      removeOnFail: 1000,
+    });
   }
 
   public getEvents() {
@@ -111,7 +128,7 @@ export class TelemetrySimulator {
    * Drops 30% for capacitor failure
    * Drops 100% of fw 1.2.x
    */
-  private processPowerLost(affectedPoles: any[]) {
+  private async processPowerLost(affectedPoles: any[]) {
     for (const pole of affectedPoles) {
       if (!pole.deviceId) continue;
 
@@ -125,7 +142,7 @@ export class TelemetrySimulator {
         continue; // message lost
       }
 
-      this.emitTelemetry(pole.deviceId, 'power_lost', false, pole.fw);
+      await this.emitTelemetry(pole.deviceId, 'power_lost', false, pole.fw);
     }
   }
 
@@ -140,7 +157,7 @@ export class TelemetrySimulator {
       affectedPoles: affected
     });
 
-    this.processPowerLost(affected);
+    await this.processPowerLost(affected);
     return faultId;
   }
 
@@ -155,7 +172,7 @@ export class TelemetrySimulator {
       affectedPoles: affected
     });
 
-    this.processPowerLost(affected);
+    await this.processPowerLost(affected);
     return faultId;
   }
 
@@ -178,7 +195,7 @@ export class TelemetrySimulator {
       affectedPoles: allAffectedPoles
     });
 
-    this.processPowerLost(allAffectedPoles);
+    await this.processPowerLost(allAffectedPoles);
     return faultId;
   }
 
@@ -205,7 +222,7 @@ export class TelemetrySimulator {
     };
   }
 
-  public injectDuplicateBurst(deviceId: string) {
+  public async injectDuplicateBurst(deviceId: string) {
     const seq = this.getNextSeq(deviceId); // The actual sequence number
     const fw = '1.4.2';
     
@@ -220,6 +237,10 @@ export class TelemetrySimulator {
         fw
       };
       this.generatedEvents.push(payload);
+      await telemetryQueue.add('process-telemetry', payload, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+      });
     }
 
     // Generate an older message (out of order)
@@ -233,12 +254,16 @@ export class TelemetrySimulator {
         fw
       };
       this.generatedEvents.push(oldPayload);
+      await telemetryQueue.add('process-telemetry', oldPayload, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+      });
     }
   }
 
   // --- Restoration ---
 
-  public repairFault(faultId: string) {
+  public async repairFault(faultId: string) {
     const fault = this.activeFaults.get(faultId);
     if (!fault) throw new Error(`Fault ${faultId} not found`);
 
@@ -246,10 +271,10 @@ export class TelemetrySimulator {
       if (!pole.deviceId) continue;
 
       // 1. Boot event
-      this.emitTelemetry(pole.deviceId, 'boot', true, pole.fw);
+      await this.emitTelemetry(pole.deviceId, 'boot', true, pole.fw);
       
       // 2. Power restored event
-      this.emitTelemetry(pole.deviceId, 'power_restored', true, pole.fw);
+      await this.emitTelemetry(pole.deviceId, 'power_restored', true, pole.fw);
     }
 
     this.activeFaults.delete(faultId);
