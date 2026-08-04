@@ -1,19 +1,12 @@
 import { useMemo } from 'react';
 import { GridStateData } from '../store';
 
-interface Extent {
-  minLat: number;
-  maxLat: number;
-  minLon: number;
-  maxLon: number;
-}
-
 export function useMapScale(gridState: GridStateData | null, width: number, height: number, padding: number = 40) {
   return useMemo(() => {
     if (!gridState || (gridState.dts.length === 0 && gridState.poles.length === 0)) {
       return {
-        scaleX: (lon: number) => 0,
-        scaleY: (lat: number) => 0,
+        scaleX: () => 0,
+        scaleY: () => 0,
       };
     }
 

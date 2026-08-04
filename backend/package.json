@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "dev:all": "docker-compose up -d && drizzle-kit push && tsx src/scripts/seed.ts && concurrently \"tsx src/server.ts\" \"tsx src/workers/telemetryWorker.ts\" \"cd ../frontend && npm run dev\""
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "@types/node": "^26.1.2",
     "@types/pg": "^8.20.3",
     "@types/supertest": "^7.2.1",
+    "concurrently": "^10.0.4",
     "drizzle-kit": "^0.31.10",
     "supertest": "^7.2.2",
     "tsx": "^4.23.5",

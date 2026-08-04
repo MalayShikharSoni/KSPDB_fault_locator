@@ -10,13 +10,14 @@ describe('useMapScale', () => {
   });
 
   it('should scale coordinates correctly within the bounding box', () => {
-    const gridState: any = {
+    const gridState = {
       dts: [
         { lat: 10, lon: 20 },
         { lat: 20, lon: 30 }
       ],
-      poles: []
-    };
+      poles: [],
+      edges: []
+    } as unknown as import('./store').GridStateData;
 
     // Width=100, Height=100, padding=0
     // minLat=10, maxLat=20 -> Range=10

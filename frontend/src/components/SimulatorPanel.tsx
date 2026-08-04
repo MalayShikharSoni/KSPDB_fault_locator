@@ -49,7 +49,7 @@ export function SimulatorPanel() {
           <label className={styles.label}>Fault Type</label>
           <select 
             value={type} 
-            onChange={e => setType(e.target.value as any)}
+            onChange={e => setType(e.target.value as 'span' | 'dt' | 'feeder')}
             className={styles.input}
           >
             <option value="span">Span (Edge)</option>

@@ -49,7 +49,7 @@ export function SVGVisualizer() {
         if (!edge.parentPoleId) return null; 
         
         const childPole = gridState.poles.find(p => p.id === edge.childPoleId);
-        let parentNode = gridState.poles.find(p => p.id === edge.parentPoleId) as any;
+        let parentNode: { lat: number; lon: number } | undefined = gridState.poles.find(p => p.id === edge.parentPoleId);
         if (!parentNode) {
           parentNode = gridState.dts.find(d => d.id === edge.parentPoleId);
         }
