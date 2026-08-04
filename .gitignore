@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+.DS_Store
+assignment/
+
+# Drizzle
+drizzle/
+
+# Logs
+*.log
+npm-debug.log*
