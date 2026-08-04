@@ -125,6 +125,7 @@ async function runSeed() {
         ward: 'W-01',
         pincode: '560001',
         deviceId: `KSPDB-DEV-${poleId}`,
+        fw: '1.4.2',
       });
       lastPoleId = poleId;
     }
@@ -154,6 +155,7 @@ async function runSeed() {
         ward: 'W-01',
         pincode: '560001',
         deviceId: `KSPDB-DEV-${poleId}`,
+        fw: '1.4.2',
       });
       b1LastPoleId = poleId;
     }
@@ -183,6 +185,7 @@ async function runSeed() {
         ward: 'W-01',
         pincode: '560001',
         deviceId: `KSPDB-DEV-${poleId}`,
+        fw: '1.4.2',
       });
       b2LastPoleId = poleId;
     }
@@ -204,6 +207,15 @@ async function runSeed() {
   const numMissingPincodes = Math.floor(allPoles.length * 0.03);
   for (let i = 0; i < numMissingPincodes; i++) {
     allPoles[indices[i]].pincode = null;
+  }
+
+  // 8% firmware 1.2.x
+  const polesWithDevices = allPoles.filter(p => p.deviceId !== null);
+  const numFw12x = Math.floor(polesWithDevices.length * 0.08);
+  let devIndices = Array.from({length: polesWithDevices.length}, (_, i) => i);
+  devIndices.sort(() => Math.random() - 0.5);
+  for (let i = 0; i < numFw12x; i++) {
+    polesWithDevices[devIndices[i]].fw = '1.2.x';
   }
 
   // Insert in batches of 100

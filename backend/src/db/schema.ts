@@ -34,6 +34,7 @@ export const poles = pgTable('poles', {
   ward: varchar('ward', { length: 50 }).notNull(),
   pincode: varchar('pincode', { length: 20 }),
   deviceId: varchar('device_id', { length: 100 }),
+  fw: varchar('fw', { length: 20 }),
 });
 
 export const telemetryEvents = pgTable('telemetry_events', {
