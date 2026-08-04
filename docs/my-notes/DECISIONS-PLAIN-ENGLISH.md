@@ -43,3 +43,11 @@
 ## 11. Caching Incidents in Redis for Read-Heavy Endpoints
 **Decision**: The `/api/incidents/active` API reads directly from a JSON string cached in Redis (`active_incidents`), which is updated by the queue worker.
 **Why**: Compute on write, optimize for read. It is vastly more scalable to have the worker do the heavy lifting of the DFS graph traversal and dump the answer in a fast cache, rather than forcing the Express endpoint to re-calculate the topology and incidents every time the frontend polls for active faults.
+
+## 12. Using Server-Sent Events (SSE) instead of Polling
+**Decision**: For real-time updates on the frontend, we use Server-Sent Events (SSE) via the `/api/stream/state` endpoint, triggered by a Redis Pub/Sub channel (`state_updates`), instead of polling.
+**Why**: Polling the REST endpoints every few seconds creates unnecessary HTTP overhead and latency. SSE maintains a single unidirectional connection, allowing the backend to instantly push updates to the UI exactly when a new fault is detected by the worker, resulting in a hyper-responsive, low-overhead UX.
+
+## 13. Custom SVG Visualizer via Linear Affine Transformation
+**Decision**: We built a custom `<svg>` visualizer natively in React, mapping geographic coordinates (Lat/Lon) to pixels using a simple flat linear projection (scaling based on the bounding box), rather than pulling in D3.js or a heavy map library.
+**Why**: Since our grid is a localized geometry spanning only a few kilometers, Earth's curvature distortion is negligible. A simple affine transform perfectly translates the coordinates to a 2D viewBox. Building this natively with basic primitives (`<line>`, `<circle>`) keeps the JS bundle ultra-lightweight and demonstrates absolute control over the DOM.

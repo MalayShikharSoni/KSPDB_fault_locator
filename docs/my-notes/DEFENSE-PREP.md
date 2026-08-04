@@ -1,4 +1,4 @@
-# Defense Prep (Phase 1, 2, 3, 4, 5 & 6)
+# Defense Prep (Phase 1, 2, 3, 4, 5, 6 & 7)
 
 **Q: Why use Postgres and Drizzle instead of a NoSQL DB like MongoDB for this?**
 A: The physical reality of the domain is highly relational and specifically a tree structure. We need strict constraints (a pole belongs to exactly one DT) and ACID transactions when updating state. Postgres recursive CTEs (Common Table Expressions) allow us to traverse the tree efficiently in a single query, which would require multiple round trips or cumbersome document embedding in NoSQL.
@@ -32,3 +32,9 @@ A: For the scope of this MVP assignment, doing it per-message ensures determinis
 
 **Q: Why cache the incidents in Redis instead of having the endpoint calculate them?**
 A: Compute on write, optimize for read. It is vastly more scalable to have the worker do the heavy lifting of the DFS graph traversal and dump the answer in a fast cache. This ensures the Express endpoint (`GET /api/incidents/active`) returns instantly, even if a frontend dashboard is polling it every second.
+
+**Q: Why use Server-Sent Events (SSE) instead of WebSockets or polling?**
+A: Polling creates massive HTTP overhead, and WebSockets represent a complex bi-directional connection. Since our data flow is strictly unidirectional (backend notifying frontend of grid updates), SSE is the perfect native HTTP protocol. It maintains a single open connection and uses far fewer server resources than WebSockets while providing the exact same real-time latency.
+
+**Q: Why build a custom SVG Visualizer instead of using React Flow or D3?**
+A: Graph libraries are heavily bloated (React Flow is ~50kb+ gzipped) and introduce complex virtual DOM overhead for large datasets. By translating the raw Lat/Lon coordinates via a simple linear mathematical scaling function (`useMapScale`) and rendering native SVG primitives, we maintain absolute control over the render cycle, ensure hyper-responsive scaling, and keep the bundle size minimal.

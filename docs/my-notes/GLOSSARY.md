@@ -18,3 +18,5 @@
 - **Ingestion Queue**: A high-throughput Redis-backed message queue (BullMQ) that buffers incoming telemetry spikes before processing.
 - **Deduplication Filter**: A worker mechanism that drops incoming telemetry payloads if their sequence number is equal to or older than the highest sequence number currently stored in Redis for that device.
 - **Client API**: The set of REST endpoints providing real-time data access to the frontend, primarily querying cached Redis state rather than heavy SQL execution.
+- **SSE (Server-Sent Events)**: A native HTTP streaming protocol that allows the backend to push real-time grid and incident updates to the React frontend without the client needing to poll.
+- **Affine Transformation (Map Scale)**: The mathematical function used in our custom SVG visualizer to linearly project real-world Latitude/Longitude coordinates into 2D screen pixels.
