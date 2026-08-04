@@ -15,3 +15,5 @@
 - **Boundary Clarity**: A confidence factor based on whether the boundary edge connects two known devices, or if it crosses over a "gap" pole with no device.
 - **Hardware Issue (Broken Sensor)**: A state where a pole claims to be dark, but poles downstream of it have power. This breaks the physics of a wire fault and must be a localized device failure.
 - **Simulator**: An internal engine designed to inject faults (span, DT, feeder) and generate realistic, imperfect telemetry payloads, modeling real-world noise like capacitor failures and bad firmware.
+- **Ingestion Queue**: A high-throughput Redis-backed message queue (BullMQ) that buffers incoming telemetry spikes before processing.
+- **Deduplication Filter**: A worker mechanism that drops incoming telemetry payloads if their sequence number is equal to or older than the highest sequence number currently stored in Redis for that device.

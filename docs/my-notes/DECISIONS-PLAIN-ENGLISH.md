@@ -31,3 +31,11 @@
 ## 8. Simulator Architecture
 **Decision**: We built a custom telemetry simulator that queries the true database topology to generate downstream fault cascades.
 **Why**: The localization engine is useless if it's not robust against noise. By building a simulator that natively drops 30% of messages (simulating capacitor death) and strictly silences firmware 1.2.x devices, we can test our localization confidence scores against truly imperfect, real-world data distributions.
+
+## 9. Async Ingestion and Individual Redis Sequence Keys
+**Decision**: Incoming telemetry is validated synchronously (via Zod) and immediately pushed to a BullMQ queue, returning a 202 Accepted. The worker process uses individual Redis string keys (`device:seq:${device_id}`) to track sequence numbers rather than a single massive Hash map.
+**Why**: The ingest layer must absorb massive thundering herd spikes when a feeder trips. The queue provides a resilient buffer. Using individual Redis keys prevents hot-key contention during a spike and inherently supports horizontal sharding across a Redis cluster later.
+
+## 10. Per-Message Localization Execution (MVP Trade-off)
+**Decision**: In this MVP, the worker triggers the full `localizeFaults` DFS tree traversal immediately after updating state for *every* valid, deduplicated message.
+**Why**: This makes the system extremely deterministic and easy to unit test for the assignment. **Trade-off**: In a production environment with high throughput, executing the DFS on every single message is computationally heavy. We would realistically implement a debounce or batching window (e.g., waiting 500ms after the first telemetry event on a DT before running the localization algorithm once on the aggregated states).

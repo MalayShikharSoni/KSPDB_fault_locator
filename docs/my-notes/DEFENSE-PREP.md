@@ -1,4 +1,4 @@
-# Defense Prep (Phase 1, 2, 3 & 4)
+# Defense Prep (Phase 1, 2, 3, 4 & 5)
 
 **Q: Why use Postgres and Drizzle instead of a NoSQL DB like MongoDB for this?**
 A: The physical reality of the domain is highly relational and specifically a tree structure. We need strict constraints (a pole belongs to exactly one DT) and ACID transactions when updating state. Postgres recursive CTEs (Common Table Expressions) allow us to traverse the tree efficiently in a single query, which would require multiple round trips or cumbersome document embedding in NoSQL.
@@ -23,3 +23,9 @@ A: Because DFS traverses each branch independently. If branch A has a fault at p
 
 **Q: How did you test the localization algorithm against missing data?**
 A: I built a Simulator that queries the actual Postgres database topology and dynamically drops 30% of the `power_lost` messages (simulating dying capacitors) and 100% of the messages from devices running firmware `1.2.x`. This forces the localization DFS to operate on Swiss-cheese data, exactly as it would in production.
+
+**Q: Why use individual keys (`device:seq:{id}`) in Redis instead of a single Hash map for the sequences?**
+A: When a feeder trips, thousands of poles send telemetry simultaneously. If we used a single Redis Hash to store sequences for the entire city, that key would become a severe write bottleneck (a "hot key"). Using individual strings spreads the load and allows Redis to natively shard those keys across a cluster in a production environment.
+
+**Q: If `localizeFaults` is computationally heavy, why trigger it on every single message in the queue?**
+A: For the scope of this MVP assignment, doing it per-message ensures deterministic state transitions for testing. However, in a real massive-scale production environment, doing heavy graph traversals on every message is unscalable. We would introduce a debouncing mechanism—buffering events for a DT and waiting ~500ms after the first event to allow the cascade to settle before running the localization logic once.
