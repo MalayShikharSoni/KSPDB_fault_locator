@@ -17,7 +17,7 @@ describe('useMapScale', () => {
       ],
       poles: [],
       edges: []
-    } as unknown as import('./store').GridStateData;
+    } as unknown as import('../store').GridStateData;
 
     // Width=100, Height=100, padding=0
     // minLat=10, maxLat=20 -> Range=10

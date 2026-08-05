@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useStore } from '../store';
 import { useMapScale } from '../hooks/useMapScale';
 import styles from './SVGVisualizer.module.css';
 
 export function SVGVisualizer() {
-  const { gridState, activeIncidents } = useStore();
+  const { gridState, activeIncidents, selectedTargetId, selectedContextDtId, setSelectedTargetId, setSelectedContextDtId } = useStore();
   const width = window.innerWidth;
   const height = window.innerHeight;
 
@@ -84,34 +84,49 @@ export function SVGVisualizer() {
         );
       })}
 
-      {/* Draw DTs */}
-      {gridState.dts.map(dt => (
-        <rect
-          key={dt.id}
-          x={scaleX(dt.lon) - 4}
-          y={scaleY(dt.lat) - 4}
-          width="8"
-          height="8"
-          rx="2"
-          fill="var(--color-blue-500)"
-          stroke="var(--color-blue-400)"
-          strokeWidth="1"
-          filter="url(#glow)"
-        />
-      ))}
+      {gridState.dts.map(dt => {
+        const isSelected = selectedContextDtId === dt.id;
+        return (
+          <rect
+            key={dt.id}
+            x={scaleX(dt.lon) - 4}
+            y={scaleY(dt.lat) - 4}
+            width="8"
+            height="8"
+            rx="2"
+            fill="var(--color-blue-500)"
+            stroke={isSelected ? "var(--color-text-primary)" : "var(--color-blue-400)"}
+            strokeWidth={isSelected ? "2" : "1"}
+            filter="url(#glow)"
+            style={{ cursor: 'pointer' }}
+            onClick={() => setSelectedContextDtId(dt.id)}
+          >
+            <title>{`DT ID: ${dt.id}\nCapacity: ${dt.capacityKva} kVA`}</title>
+          </rect>
+        );
+      })}
 
-      {/* Draw Poles */}
-      {gridState.poles.map(pole => (
-        <circle
-          key={pole.id}
-          cx={scaleX(pole.lon)}
-          cy={scaleY(pole.lat)}
-          r={faultPoleIds.has(pole.id) ? "2.5" : "1.5"}
-          fill={getPoleColor(pole.state, pole.id)}
-          filter={faultPoleIds.has(pole.id) ? "url(#glow-fault)" : undefined}
-          opacity={pole.state === 'unknown' ? 0.5 : 1}
-        />
-      ))}
+      {gridState.poles.map(pole => {
+        const isSelected = selectedTargetId === pole.id;
+        return (
+          <circle
+            key={pole.id}
+            cx={scaleX(pole.lon)}
+            cy={scaleY(pole.lat)}
+            r={faultPoleIds.has(pole.id) ? "2.5" : (isSelected ? "3" : "1.5")}
+            fill={isSelected ? "var(--color-text-primary)" : getPoleColor(pole.state, pole.id)}
+            filter={faultPoleIds.has(pole.id) ? "url(#glow-fault)" : undefined}
+            opacity={pole.state === 'unknown' ? 0.5 : 1}
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              setSelectedTargetId(pole.id);
+              setSelectedContextDtId(pole.dtId);
+            }}
+          >
+            <title>{`Pole ID: ${pole.id}\nState: ${pole.state}`}</title>
+          </circle>
+        );
+      })}
     </svg>
   );
 }

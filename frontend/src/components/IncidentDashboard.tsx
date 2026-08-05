@@ -1,4 +1,3 @@
-import React from 'react';
 import { ShieldAlert, Cpu } from 'lucide-react';
 import { useStore } from '../store';
 import styles from './IncidentDashboard.module.css';

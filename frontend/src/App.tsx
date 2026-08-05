@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useStore } from './store';
 import { SVGVisualizer } from './components/SVGVisualizer';
 import { SimulatorPanel } from './components/SimulatorPanel';
