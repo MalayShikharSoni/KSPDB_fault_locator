@@ -60,6 +60,8 @@ export const telemetryWorker = new Worker('telemetry-ingest', async (job: Job) =
   // Group poles by DT to localize faults per DT
   const dts = new Set(allPoles.map(p => p.dtId));
   
+  const aggregatedResult = { incidents: [] as any[], hardwareIssues: [] as any[] };
+
   for (const dtId of dts) {
     const dtPoles = allPoles.filter(p => p.dtId === dtId);
     
@@ -76,17 +78,15 @@ export const telemetryWorker = new Worker('telemetry-ingest', async (job: Job) =
     
     const result = localizeFaults(topology, poleIdToState);
     
-    // Cache the result in Redis for the frontend
-    await connection.set('active_incidents', JSON.stringify(result));
-    
-    // Notify SSE clients
-    await connection.publish('state_updates', 'updated');
-    
-    // In a real system, we would compare `result` with previous incidents and generate/update Tickets here
-    if (result.incidents.length > 0 || result.hardwareIssues.length > 0) {
-      // console.log(`[DT: ${dtId}] Detected ${result.incidents.length} incidents, ${result.hardwareIssues.length} hardware issues.`);
-    }
+    aggregatedResult.incidents.push(...result.incidents);
+    aggregatedResult.hardwareIssues.push(...result.hardwareIssues);
   }
+
+  // Cache the aggregated result in Redis for the frontend
+  await connection.set('active_incidents', JSON.stringify(aggregatedResult));
+  
+  // Notify SSE clients ONCE
+  await connection.publish('state_updates', 'updated');
 
   return { status: 'processed', device_id, seq };
 

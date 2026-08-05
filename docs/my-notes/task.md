@@ -1,7 +1,4 @@
-- `[x]` Fix Data Mismatch Bugs
-  - `[x]` Update `backend/src/services/localization.ts` (factors, ID, confidenceScore, affectedPoles types)
-  - `[x]` Update `frontend/src/store.ts` (Incident & HardwareIssue typings)
-  - `[x]` Update `frontend/src/components/IncidentDashboard.tsx` (Use poleId/reason)
-  - `[x]` Update `frontend/src/components/SVGVisualizer.tsx` (Map strings instead of pole.id)
-- `[x]` Verify functionality locally
+- `[x]` Fix Telemetry Worker Loop Bug
+  - `[x]` Update `backend/src/workers/telemetryWorker.ts`
+- `[ ]` Verify functionality locally
 - `[ ]` Await user approval to push

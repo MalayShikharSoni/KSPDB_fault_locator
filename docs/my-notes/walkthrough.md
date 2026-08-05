@@ -1,4 +1,13 @@
-# Type Mismatch Bug Fixes Walkthrough
+# Telemetry Loop & Type Mismatch Bug Fixes Walkthrough
+
+## What was changed?
+
+### Telemetry Worker Loop Bug Fix (`backend/src/workers/telemetryWorker.ts`)
+The user identified a massive UI glitch where the grid rapidly flashed between displaying faults and reporting "Grid operating normally." This was caused by the telemetry worker iterating over all 12 Distribution Transformers on every telemetry payload, and immediately overwriting the global Redis `active_incidents` key with the single DT's state inside the loop. 
+- Extracted the Redis caching (`connection.set`) and SSE publishing (`connection.publish`) logic outside of the DT loop.
+- Aggregated all faults from all DTs into a single master array, and pushed that master payload to Redis precisely once per BullMQ job.
+
+
 
 ## What was changed?
 The core reason the UI was crashing and the map wasn't highlighting fault paths was a fundamental type mismatch between what the Node backend was calculating and what the React frontend was expecting.
