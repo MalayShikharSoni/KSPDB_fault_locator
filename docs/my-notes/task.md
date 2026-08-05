@@ -1,4 +1,10 @@
-- `[x]` Fix Telemetry Worker Loop Bug
-  - `[x]` Update `backend/src/workers/telemetryWorker.ts`
-- `[ ]` Verify functionality locally
-- `[ ]` Await user approval to push
+- `[x]` Dockerization
+  - `[x]` Create `backend/Dockerfile`
+  - `[x]` Create `frontend/Dockerfile`
+  - `[x]` Create root `docker-compose.yml`
+  - `[x]` Configure database seeding on startup
+- `[x]` Resolve Ticket Feature
+  - `[x]` Update `frontend/src/components/IncidentDashboard.tsx` (Add "Resolve" button with pushback logic)
+- `[x]` Verification
+  - `[x]` Verify Docker compose up works
+  - `[x]` Verify Resolve ticket pushback works
