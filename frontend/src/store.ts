@@ -28,7 +28,7 @@ export interface TopologyEdge {
 export interface Incident {
   id: string;
   type: string;
-  affectedPoles: GridPole[];
+  affectedPoles: string[];
   confidenceScore: number;
   factors: {
     topology: number;
@@ -39,9 +39,8 @@ export interface Incident {
 }
 
 export interface HardwareIssue {
-  id: string;
-  type: 'HardwareIssue';
-  affectedPoles: GridPole[];
+  poleId: string;
+  reason: string;
 }
 
 export interface GridStateData {

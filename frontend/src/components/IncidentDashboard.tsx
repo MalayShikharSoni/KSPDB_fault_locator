@@ -17,7 +17,7 @@ export function IncidentDashboard() {
         <div className={styles.metrics}><div><span>IMPACT</span><strong>{incident.affectedPoles.length} <em>poles</em></strong></div><div><span>TOPOLOGY</span><strong>{incident.factors.topology === 1 ? 'Surveyed' : 'Inferred'}</strong></div></div>
         <button className={styles.locationButton}><MapPin size={14}/>View affected area<ChevronRight size={14}/></button>
       </article> })}</div>}
-      {hardware.length > 0 && <div className={styles.hardware}><div className={styles.hardwareTitle}><Cpu size={15}/><span>Sensor exceptions</span><b>{hardware.length}</b></div>{hardware.map((item,index) => <div className={styles.hardwareItem} key={item.id || index}><ShieldAlert size={14}/><span>{item.affectedPoles[0]?.id || 'Unidentified asset'}</span><small>Broken sensor</small></div>)}</div>}
+      {hardware.length > 0 && <div className={styles.hardware}><div className={styles.hardwareTitle}><Cpu size={15}/><span>Sensor exceptions</span><b>{hardware.length}</b></div>{hardware.map((item,index) => <div className={styles.hardwareItem} key={item.poleId || index}><ShieldAlert size={14}/><span>{item.poleId || 'Unidentified asset'}</span><small>{item.reason || 'Broken sensor'}</small></div>)}</div>}
     </>}
   </section>;
 }

@@ -31,7 +31,7 @@ export function SVGVisualizer() {
   const { scaleX, scaleY } = useMapScale(gridState, size.width, size.height, 54);
   const polesById = useMemo(() => new Map(gridState?.poles.map(pole => [pole.id, pole])), [gridState]);
   const dtsById = useMemo(() => new Map(gridState?.dts.map(dt => [dt.id, dt])), [gridState]);
-  const faultPoleIds = useMemo(() => new Set(activeIncidents?.incidents.flatMap(incident => incident.affectedPoles.map(pole => pole.id)) ?? []), [activeIncidents]);
+  const faultPoleIds = useMemo(() => new Set(activeIncidents?.incidents.flatMap(incident => incident.affectedPoles) ?? []), [activeIncidents]);
 
   if (!gridState) return <div ref={hostRef} className={styles.loadingContainer}><span className={styles.spinner} />Establishing secure data stream…</div>;
   const getPoleClass = (state: string, id: string) => faultPoleIds.has(id) ? styles.faultPole : state === 'live' ? styles.livePole : state === 'dark' ? styles.darkPole : styles.unknownPole;

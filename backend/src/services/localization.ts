@@ -3,10 +3,17 @@ import { TopologyEdge } from './topology';
 export type PoleState = 'live' | 'dark' | 'unknown';
 
 export type Incident = {
+  id: string;
   type: 'dt_fault' | 'span_fault';
   boundaryEdge: TopologyEdge | null;
   affectedPoles: string[];
-  confidence: number;
+  confidenceScore: number;
+  factors: {
+    topology: number;
+    corroboration: number;
+    freshness: number;
+    clarity: number;
+  };
 };
 
 export type HardwareIssue = {
@@ -109,10 +116,17 @@ export function localizeFaults(
     }
 
     incidents.push({
+      id: `dt-fault-${dtChildren[0] || 'root'}`,
       type: 'dt_fault',
       boundaryEdge: null,
       affectedPoles,
-      confidence: 1.0, 
+      confidenceScore: 1.0,
+      factors: {
+        topology: 1.0,
+        corroboration: 1.0,
+        freshness: 1.0,
+        clarity: 1.0
+      }
     });
 
     return { incidents, hardwareIssues };
@@ -156,17 +170,24 @@ export function localizeFaults(
       if (parentState === 'unknown' && childState === 'unknown') clarityConf = 0.2;
       else if (parentState === 'unknown' || childState === 'unknown') clarityConf = 0.5;
 
-      const confidence = 
+      const confidenceScore = 
         0.4 * topologyConf + 
         0.3 * corroborationConf + 
         0.2 * freshnessConf + 
         0.1 * clarityConf;
 
       incidents.push({
+        id: `span-fault-${node}`,
         type: 'span_fault',
         boundaryEdge: edge,
         affectedPoles,
-        confidence,
+        confidenceScore,
+        factors: {
+          topology: topologyConf,
+          corroboration: corroborationConf,
+          freshness: freshnessConf,
+          clarity: clarityConf
+        }
       });
 
       return;

@@ -1,5 +1,7 @@
-- `[x]` Implement Pan and Zoom
-  - `[x]` Update SVGVisualizer.module.css (control buttons, touch-action)
-  - `[x]` Update SVGVisualizer.tsx (transform state, event handlers, control panel)
-- `[x]` Verify functionality
-- `[x]` Commit and push changes
+- `[x]` Fix Data Mismatch Bugs
+  - `[x]` Update `backend/src/services/localization.ts` (factors, ID, confidenceScore, affectedPoles types)
+  - `[x]` Update `frontend/src/store.ts` (Incident & HardwareIssue typings)
+  - `[x]` Update `frontend/src/components/IncidentDashboard.tsx` (Use poleId/reason)
+  - `[x]` Update `frontend/src/components/SVGVisualizer.tsx` (Map strings instead of pole.id)
+- `[x]` Verify functionality locally
+- `[ ]` Await user approval to push
