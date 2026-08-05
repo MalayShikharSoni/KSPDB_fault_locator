@@ -6,8 +6,7 @@ This system ingests high-volume device telemetry, infers missing graph topologie
 
 ## 🚀 Live Demo & Links
 
-- **Public URL**: [INSERT_YOUR_VERCEL_URL_HERE] *(The deployed Vercel UI connected to Render/Neon)*
-- **Demo Video**: [INSERT_YOUR_LOOM_LINK_HERE] *(A 5-minute walkthrough of injecting and repairing a fault)*
+- **Public URL**: [https://kspdb-fault-locator-h2ut-three.vercel.app/](https://kspdb-fault-locator-h2ut-three.vercel.app/) *(The deployed Vercel UI connected to Render/Neon)*
 
 ## ⚡ One-Command Start (Local Development)
 
