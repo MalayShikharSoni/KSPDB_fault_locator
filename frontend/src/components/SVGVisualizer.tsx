@@ -39,9 +39,14 @@ export function SVGVisualizer() {
   return (
     <svg width={width} height={height} className={styles.svgCanvas}>
       <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563" />
-        </marker>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+        <filter id="glow-fault" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
       </defs>
 
       {/* Draw Edges */}
@@ -72,9 +77,9 @@ export function SVGVisualizer() {
             x2={x2}
             y2={y2}
             stroke="var(--color-text-muted)"
-            strokeWidth="2"
-            strokeDasharray={isSurveyed ? "none" : (isAmbiguous ? "4 4" : "8 4")}
-            opacity={0.6}
+            strokeWidth="1"
+            strokeDasharray={isSurveyed ? "none" : (isAmbiguous ? "2 2" : "4 2")}
+            opacity={isSurveyed ? 0.4 : 0.2}
           />
         );
       })}
@@ -83,13 +88,15 @@ export function SVGVisualizer() {
       {gridState.dts.map(dt => (
         <rect
           key={dt.id}
-          x={scaleX(dt.lon) - 8}
-          y={scaleY(dt.lat) - 8}
-          width="16"
-          height="16"
-          fill="var(--color-blue-500)" // Blue for DT
-          stroke="var(--color-blue-900)"
-          strokeWidth="2"
+          x={scaleX(dt.lon) - 4}
+          y={scaleY(dt.lat) - 4}
+          width="8"
+          height="8"
+          rx="2"
+          fill="var(--color-blue-500)"
+          stroke="var(--color-blue-400)"
+          strokeWidth="1"
+          filter="url(#glow)"
         />
       ))}
 
@@ -99,10 +106,10 @@ export function SVGVisualizer() {
           key={pole.id}
           cx={scaleX(pole.lon)}
           cy={scaleY(pole.lat)}
-          r="4"
+          r={faultPoleIds.has(pole.id) ? "2.5" : "1.5"}
           fill={getPoleColor(pole.state, pole.id)}
-          stroke="var(--color-bg-panel-border)"
-          strokeWidth="1"
+          filter={faultPoleIds.has(pole.id) ? "url(#glow-fault)" : undefined}
+          opacity={pole.state === 'unknown' ? 0.5 : 1}
         />
       ))}
     </svg>
