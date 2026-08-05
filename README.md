@@ -1,48 +1,32 @@
-# KSPDB Fault Locator (Propel Assignment)
+# KSPDB Fault Locator
 
 **An end-to-end algorithmic visualization system for automated fault localization in radial power grids.**
 
-This project demonstrates a full-stack engineering approach to ingesting high-volume device telemetry, inferring missing graph topologies using a Minimum Spanning Tree (Prim's Algorithm), executing real-time Depth-First Search (DFS) traversals to isolate electrical faults, and instantly streaming the results to a highly optimized, native React UI via Server-Sent Events (SSE).
+This system ingests high-volume device telemetry, infers missing graph topologies using a modified Minimum Spanning Tree (Prim's), executes real-time Depth-First Search (DFS) traversals to isolate electrical faults, and streams the results instantly to a pure React UI via Server-Sent Events (SSE).
 
-## 🚀 Core Engineering Philosophies
+## 🚀 Live Demo & Links
 
-1. **Native SSE over WebSockets**: To provide instant, real-time UI updates without the overhead of HTTP polling or the complexity of bi-directional WebSockets, we push updates unidirectionally via native Server-Sent Events (SSE) backed by a Redis Pub/Sub channel.
-2. **Custom SVG Math over D3**: Rather than bloating the frontend bundle with D3 or React Flow, the visualizer leverages a custom React hook to perform a linear Affine transformation, mapping real-world Lat/Lon coordinates perfectly into a highly responsive, native 2D `<svg>` viewBox.
-3. **CSS Modules over Tailwind**: In strict adherence to a "native-first, zero-dependency" philosophy, the UI is styled entirely using pure CSS Modules (`*.module.css`) and CSS Custom Properties, proving absolute mastery of vanilla CSS architecture and component encapsulation without build-time utility overhead.
-4. **Resilient Ingestion (BullMQ + Redis)**: Out-of-order telemetry is strictly dropped using per-device sequence tracking via lightweight Redis string keys, preventing hot-key contention while absorbing massive feeder-trip thundering herds via BullMQ.
+- **Public URL**: [INSERT_YOUR_VERCEL_URL_HERE] *(The deployed Vercel UI connected to Render/Neon)*
+- **Demo Video**: [INSERT_YOUR_LOOM_LINK_HERE] *(A 5-minute walkthrough of injecting and repairing a fault)*
 
-## ⚡ Quickstart (One-Command Spin Up)
+## ⚡ One-Command Start (Local Development)
 
-You will need **Docker Desktop** running and **Node.js (v20+)** installed.
+The entire architecture is containerized and relies strictly on Docker. There is no manual migration or configuration required. 
 
-### 1. Install Dependencies
+To spin up the Postgres database, Redis cache, Express backend, BullMQ worker, and React frontend simultaneously with a fully seeded synthetic grid:
+
 ```bash
-# Install backend dependencies
-cd backend && npm install
-
-# Install frontend dependencies
-cd ../frontend && npm install
+git clone https://github.com/MalayShikharSoni/KSPDB_fault_locator.git
+cd KSPDB_fault_locator
+docker compose up -d
 ```
+*(Wait ~10 seconds for the Drizzle seed script to finish generating the 1200 geographic poles, then open [http://localhost:5173](http://localhost:5173)).*
 
-### 2. Start the Full Stack
-We will use Docker Compose to spin up Postgres and Redis, flush/seed the database with synthetic branching geographic data, start the Express/BullMQ backend, and launch the Vite React frontend.
+## 📚 Documentation Map
 
-Open a terminal at the project root and run:
-```bash
-cd backend
-npm run dev:all
-```
-*(Note: `dev:all` starts Docker, runs DB migrations, seeds the 1200-pole synthetic topography, starts the Express server and Telemetry Worker, and concurrently boots the Vite frontend).*
+As per the deliverable requirements, the complete system context is documented at the repository root:
 
-### 3. Access the Application
-- **UI Dashboard**: [http://localhost:5173](http://localhost:5173)
-- **API Backend**: [http://localhost:3000](http://localhost:3000)
-
-## 🧪 E2E Manual Testing
-Please see [docs/E2E_TEST_PLAN.md](./docs/E2E_TEST_PLAN.md) for a step-by-step interactive script on how to simulate faults (Span, DT, Feeder), observe the localization engine handle ambiguity, and watch the UI react in real-time.
-
-## 📁 Project Structure
-
-- `/backend`: Express, Drizzle ORM, Postgres, Redis, BullMQ. Contains the core algorithmic engines (`topology.ts` and `localization.ts`).
-- `/frontend`: Vite, React, Zustand. Contains the custom SVG visualizer and native CSS Modules.
-- `/docs/my-notes`: Detailed architectural decisions, algorithm glossaries, and defense prep questions.
+1. [**`ARCHITECTURE.md`**](./ARCHITECTURE.md) - The technical heart. Covers our data flow, topological modeling, DFS localization algorithm, and API design.
+2. [**`DEPLOYMENT.md`**](./DEPLOYMENT.md) - A step-by-step guide on deploying this stack to production (Vercel, Render, Neon), including environment variables and exact troubleshooting steps for common edge cases.
+3. [**`DECISIONS.md`**](./DECISIONS.md) - A chronological log of critical engineering decisions, rejected frameworks (like D3 and Tailwind), and identified fragile edge cases.
+4. [**`AI-WORKFLOW.md`**](./AI-WORKFLOW.md) - A transparent breakdown of how LLMs were utilized during construction, where they failed, and the manual engineering required to ship.
