@@ -1,23 +1,34 @@
-.loadingContainer {
-  width: 100%;
-  height: 100vh;
+.mapHost,.loadingContainer { position:absolute; inset:0; width:100%; height:100%; }.mapHost { background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.9), transparent 62%), linear-gradient(#f6f9fa 1px, transparent 1px), linear-gradient(90deg,#f6f9fa 1px,transparent 1px); background-size:auto,32px 32px,32px 32px; }.svgCanvas { width:100%; height:100%; display:block; }.edge { stroke-width:1; vector-effect:non-scaling-stroke; }.surveyed{stroke:#aac2bd;opacity:.65}.inferred{stroke:#c3cbd1;stroke-dasharray:5 4;opacity:.65}.ambiguous{stroke:#ca9b57;stroke-dasharray:2 3;opacity:.85}.pole,.transformer{cursor:pointer;transition:r .16s ease,stroke-width .16s ease}.livePole{fill:#18a178}.darkPole,.faultPole{fill:#d8534f}.unknownPole{fill:#aab6bd;opacity:.7}.faultPole{stroke:#ffddd8;stroke-width:1.4}.transformer{fill:#2773bd;stroke:#cfe4fc;stroke-width:1}.selectedPole{stroke:#152731;stroke-width:1.8}.selectedTransformer{stroke:#142630;stroke-width:2.4}.loadingContainer{display:flex;align-items:center;justify-content:center;gap:10px;color:#687984;font-size:13px;font-weight:650;background:#f8fafb}.spinner{width:17px;height:17px;border:2px solid #d5e2e2;border-top-color:#167c72;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+
+.zoomControls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+.zoomButton {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: 1px solid #d5e2e2;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  font-size: 18px;
+  font-weight: bold;
+  color: #152731;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg-panel);
-  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
 }
-
-.svgCanvas {
-  background-color: var(--color-bg-primary);
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 0;
+.zoomButton:hover {
+  background: #f6f9fa;
+  border-color: #aac2bd;
+}
+.zoomButton:active {
+  transform: scale(0.95);
 }

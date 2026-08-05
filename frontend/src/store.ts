@@ -63,7 +63,7 @@ interface StoreState {
   selectedContextDtId: string | null;
   setSelectedTargetId: (id: string | null) => void;
   setSelectedContextDtId: (id: string | null) => void;
-  initStream: () => void;
+  initStream: () => () => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -98,5 +98,7 @@ export const useStore = create<StoreState>((set) => ({
       set({ isConnected: false });
       // EventSource automatically attempts to reconnect
     };
+
+    return () => eventSource.close();
   }
 }));
