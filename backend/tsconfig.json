@@ -7,7 +7,7 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "CommonJS",
+    "module": "ESNext",
     "moduleResolution": "Bundler",
     "target": "esnext",
     "types": [],
