@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, ChevronRight, Cpu, MapPin, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Cpu, MapPin, ShieldAlert } from 'lucide-react';
 import { useStore } from '../store';
 import styles from './IncidentDashboard.module.css';
 
