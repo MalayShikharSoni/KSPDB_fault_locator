@@ -1,31 +1,45 @@
 # KSPDB Fault Locator
 
-**An end-to-end algorithmic visualization system for automated fault localization in radial power grids.**
+A real-time telemetry ingestion and fault localization engine for the Karnataka State Power Distribution Board (KSPDB) low-tension grid.
 
-This system ingests high-volume device telemetry, infers missing graph topologies using a modified Minimum Spanning Tree (Prim's), executes real-time Depth-First Search (DFS) traversals to isolate electrical faults, and streams the results instantly to a pure React UI via Server-Sent Events (SSE).
+**Demo Video:** [Watch the 5-Minute Demonstration](https://drive.google.com/file/d/1tBT5Iek43cpdfZh3gvwkWS7LiL3vIytJ/view?usp=sharing)
+**Live Application URL:** [Insert Render/Railway/Vercel URL here if applicable]
 
-## 🚀 Live Demo & Links
+---
 
-- **Public URL**: [https://kspdb-fault-locator-h2ut-three.vercel.app/](https://kspdb-fault-locator-h2ut-three.vercel.app/) *(The deployed Vercel UI connected to Render/Neon)*
+## The Problem
+When a low-tension wire snaps on the grid, all downstream houses lose power. Currently, operators wait for phone complaints and dispatch linemen to physically trace the line pole-by-pole—a process taking up to two hours. 
 
-## ⚡ One-Command Start (Local Development)
+## The Solution
+This system ingests high-velocity IoT telemetry (live/dark states) from smart poles, rebuilds the unmapped geographic topology using Minimum Spanning Tree inference, and runs a Depth-First Search (DFS) algorithm to pinpoint the exact failure boundary on the span within milliseconds. It reduces fault identification time from two hours to zero.
 
-The entire architecture is containerized and relies strictly on Docker. There is no manual migration or configuration required. 
+## Running Locally
 
-To spin up the Postgres database, Redis cache, Express backend, BullMQ worker, and React frontend simultaneously with a fully seeded synthetic grid:
+The entire stack (Frontend, Backend, BullMQ Worker, Redis, and PostgreSQL) runs completely containerized with a single command. 
 
+### Prerequisites
+- Docker & Docker Compose
+
+### Start the Application
 ```bash
 git clone https://github.com/MalayShikharSoni/KSPDB_fault_locator.git
 cd KSPDB_fault_locator
-docker compose up -d
+docker compose up --build
 ```
-*(Wait ~10 seconds for the Drizzle seed script to finish generating the 1200 geographic poles, then open [http://localhost:5173](http://localhost:5173)).*
+*Note: The system automatically provisions and seeds the database with a highly realistic, randomized 1,200 pole network on startup.*
 
-## 📚 Documentation Map
+Open **`http://localhost:5173`** in your browser.
 
-As per the deliverable requirements, the complete system context is documented at the repository root:
+## Documentation Navigation
+The technical details of this project are strictly documented across the following files:
 
-1. [**`ARCHITECTURE.md`**](./ARCHITECTURE.md) - The technical heart. Covers our data flow, topological modeling, DFS localization algorithm, and API design.
-2. [**`DEPLOYMENT.md`**](./DEPLOYMENT.md) - A step-by-step guide on deploying this stack to production (Vercel, Render, Neon), including environment variables and exact troubleshooting steps for common edge cases.
-3. [**`DECISIONS.md`**](./DECISIONS.md) - A chronological log of critical engineering decisions, rejected frameworks (like D3 and Tailwind), and identified fragile edge cases.
-4. [**`AI-WORKFLOW.md`**](./AI-WORKFLOW.md) - A transparent breakdown of how LLMs were utilized during construction, where they failed, and the manual engineering required to ship.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md): The technical heart of the submission. Details the topology generation, the DFS localization algorithm, Redis state management, and the system design.
+- [`DECISIONS.md`](DECISIONS.md): A log of critical path choices, rejected alternatives, and known constraints (e.g., SSE over WebSockets, SVG scaling).
+- [`DEPLOYMENT.md`](DEPLOYMENT.md): Detailed local configuration, exact setup commands, environment variables, and troubleshooting guides (especially the Windows Docker `CRLF` trap).
+- [`AI-WORKFLOW.md`](AI-WORKFLOW.md): A transparent evaluation of AI tooling usage, outlining strict delegation boundaries and concrete examples of AI hallucination corrections.
+
+## Testing the System
+Once running, use the **Simulation Lab** on the left rail of the UI to interact with the grid:
+1. **Span Faults:** Select "Span interruption", click any pole on the map, and run the simulation. Watch the boundary ticket generate.
+2. **Auto-Verification:** Click "Resolve" on the open ticket. Observe the system actively block the resolution because physical telemetry is still reporting dark.
+3. **Restoration:** Click "Repair" in the lab. Watch the poles turn green and the ticket automatically close upon verifying the telemetry restored events.

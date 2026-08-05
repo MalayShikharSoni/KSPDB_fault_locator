@@ -1,41 +1,33 @@
 # AI Workflow
 
-This document outlines exactly how Artificial Intelligence was leveraged to accelerate the development of this project, demonstrating a strict boundary between automated code generation and architectural engineering.
+## Tools used
+- **Agentic IDE (Google Antigravity / Gemini)** for inline generation, autonomous command execution, container orchestration, and executing multi-file refactors.
+- **ChatGPT (GPT-4o)** for high-level architectural discussion, specifically modeling the tradeoffs between Graph databases (Neo4j) vs in-memory BFS/DFS and exploring Prim's algorithm for minimum spanning tree topology inference.
 
-## Tooling Used
-- **Agentic IDE (Google Antigravity / Gemini)**: Used as an autonomous pair-programmer embedded directly within the VS Code environment, executing file edits and terminal commands contextually.
+## Delegation boundaries
 
-## The Delegation Boundary
-**What was delegated wholesale:**
-- Boilerplate setup (`tsconfig.json`, Vite configuration, Dockerfile generation).
-- Trivial React UI component scaffolding and CSS Module translation.
-- Generating the synthetic spatial math for the database seeder (calculating Haversine distance and random bearings to place 1,200 poles).
+**Delegated wholesale, reviewed lightly:**
+- **Infrastructure & Boilerplate:** The initial `docker-compose.yml`, Dockerfile setups, Drizzle ORM schema scaffolding, Vite configuration, and Express middleware wiring.
+- **Synthetic Data Generation:** The Haversine distance math in `seed.ts` used to procedurally generate a realistic radial tree network for 1,200 poles distributed across 12 Transformers, including simulating 30% capacitor failure drops and firmware version constraints.
+- **Frontend Presentation:** The raw CSS Modules UI, structural React components (`IncidentDashboard`, `SimulatorPanel`), and the native `SVGVisualizer` affine transformations mapping geographic coordinates to SVG viewport bounds.
 
-**What was heavily monitored or manually overridden:**
-- **The Core DFS Localization Algorithm**: Graph traversal mathematics for identifying strict topological boundaries require deterministic precision. AI generation was strictly supervised and heavily refactored to ensure multi-fault support.
-- **System Architecture**: The decision to use BullMQ over synchronous Postgres writes, and SSE over WebSockets, were explicit engineering mandates provided *to* the AI, not generated *by* it.
+**Hand-written or heavily corrected:**
+- **The Core Topology & Localization Mathematics:** `getTopology` (implementing Prim's algorithm for inferred grids) and `localizeFaults` (the core DFS traversal).
+- **The Ticketing Workflow Constraint:** The explicit mandate that tickets cannot be manually resolved while telemetry is reporting dark. The AI initially assumed clicking "Resolve" should close the ticket in the database. I rejected this and forced a rewrite where manual resolution is blocked by field state, requiring the telemetry worker to auto-resolve upon receiving `power_restored` events.
+- I drew the line here because the topological inference and localization accuracy are the crux of the assignment. Boilerplate CRUD endpoints and CSS grids are solved problems; interpreting ambiguous edge boundaries on a radial power network is not.
 
-## Concrete AI Failures & Corrections
+## Cases where the AI was wrong or misleading
 
-1. **The Tailwind Clutter Failure**
-   - **The Error**: The AI was initially instructed to style the UI, and it enthusiastically implemented heavily bloated Tailwind utility classes, resulting in an unreadable component structure that violated the "zero-dependency" mandate.
-   - **The Correction**: The code was rejected, and a strict system mandate was issued: "Strip Tailwind completely. Rewrite the entire frontend using pure CSS Modules". The AI executed the refactor successfully.
+1. **The Windows CRLF Docker Trap.** The AI generated a standard Alpine Linux `start.sh` entrypoint for the backend container. When building on Windows, Git checked out the file with `CRLF` line endings. The container instantly crashed with a cryptic `exec format error` (SIGBUS). The AI initially hallucinated that the architecture was wrong (suggesting `linux/amd64` flags) or that Node 22 was incompatible. I had to manually steer it to investigate the line endings, eventually instituting a `sed -i 's/\r$//' /start.sh` cleanup directly inside the Dockerfile.
 
-2. **The SVG Z-Index Bug**
-   - **The Error**: When generating the interactive grid background, the AI applied a `z-index: -10` to the CSS Module of the SVG container, but the parent container lacked a stacking context. This caused the entire SVG canvas to disappear behind the React root div.
-   - **The Correction**: The visual regression was caught immediately upon checking the local server. The AI was instructed to investigate the DOM hierarchy and resolve the stacking context by applying `z-index: 0` and position relative to the wrapper.
+2. **Deduplicating telemetry by timestamp instead of sequence.** When handling the "burst" behavior constraint, the AI originally wrote a deduplication filter using `event.timestamp`. Section 2 of `02-data-and-systems.md` explicitly warns about heavy clock skew. I corrected the agent to rely exclusively on the monotonically increasing `seq` integer tracked per `device_id` in a fast Redis Hash.
 
-3. **Verbatim Module Syntax Collision**
-   - **The Error**: The AI attempted to set up standard CommonJS exports in the backend, but the global `tsconfig.json` was enforcing strict `verbatimModuleSyntax`. This resulted in massive IDE compilation errors (`ts(1295)` and `ts(1484)`).
-   - **The Correction**: The error logs were fed directly back to the agent, which then autonomously updated `moduleResolution` to `Bundler` and `module` to `ESNext` to satisfy modern Node.js environments.
+3. **Rendering the network as a DOM-heavy Graph.** The AI initially recommended using React Flow to render the grid mapping. I realized that rendering 1,200 interactive DOM nodes on a single page would cripple browser performance. I rejected the approach and instructed the AI to rewrite the mapping layer using a single native `<svg>` canvas with raw `<circle>` and `<line>` elements relying on zero-cost `<title>` tags for tooltips.
 
-## Percentage of AI Generation
-**Estimated 80% AI-generated syntax, 100% human-directed architecture.**
-While the AI physically typed the majority of the characters in the repository, it operated strictly under rigorous, step-by-step architectural planning and manual review cycles.
+## AI generation estimate
+Roughly **75%** of the repository (UI, API plumbing, schema, seeded data scripts, Docker setup) was AI-generated with light review. The remaining **25%**—specifically `topology.ts`, `localization.ts`, the Redis ingestion worker pipeline, and the Docker environment constraints—was strictly hand-steered. I architected the logic and constraints, while the agent executed the syntax.
 
-## Best Prompting Excerpt
-The most effective use of the agent occurred during the final Phase 7 deployment preparation, where the system architecture clashed with Vercel's serverless constraints:
+## Session excerpt
+**Prompt:** *"The problem context says 60% of our transformers don't have surveyed parent-child relationships (seqOnLine is null). For these grids, we just have coordinates. Write a function that infers the radial tree topology using distance. Use Prim's Minimum Spanning Tree (MST) algorithm to connect them. Also, if the second-best edge is within 3 meters of the best edge, flag the edge as `inferred_ambiguous` so the UI knows the system is guessing."*
 
-> *"The user wants to deploy using Vercel (for frontend/backend) and Neon (for PostgreSQL)... However, we have a critical architectural constraint: Vercel only supports Serverless Functions. The BullMQ Worker requires a long-running background process... Server-Sent Events (SSE) requires a persistent, open HTTP connection. To keep our high-performance architecture intact without a massive rewrite, we must split the stack: Database on Neon, Frontend on Vercel, Backend & Worker on Render.com."*
-
-This excerpt highlights the agent's ability to not just blindly execute code, but to evaluate the architectural constraints of different cloud providers and propose a hybrid CI/CD refactor to protect the integrity of the engineering.
+**Outcome:** The AI successfully implemented `getTopology` utilizing Prim's algorithm, maintaining an `unvisited` Set and finding the shortest Haversine distance from the surveyed root (`DT_ROOT`). It properly implemented the ambiguity threshold `(min2 - min1) <= 3.0`. This allowed the localization algorithm to traverse an inferred grid identically to a surveyed grid, while bubbling up the degraded confidence metric to the Incident Dashboard.

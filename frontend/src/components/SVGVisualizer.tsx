@@ -111,7 +111,7 @@ export function SVGVisualizer() {
             })}
           </g>
           <g>
-            {gridState.dts.map(dt => <rect key={dt.id} className={`${styles.transformer} ${selectedContextDtId === dt.id ? styles.selectedTransformer : ''}`} x={scaleX(dt.lon) - 4} y={scaleY(dt.lat) - 4} width="8" height="8" rx="1.5" onPointerDown={(e) => e.stopPropagation()} onClick={() => setSelectedContextDtId(dt.id)}><title>{`Transformer ${dt.id}\nCapacity: ${dt.capacityKva} kVA`}</title></rect>)}
+            {gridState.dts.map(dt => <rect key={dt.id} className={`${styles.transformer} ${selectedContextDtId === dt.id ? styles.selectedTransformer : ''}`} x={scaleX(dt.lon) - 4} y={scaleY(dt.lat) - 4} width="8" height="8" rx="1.5" onPointerDown={(e) => e.stopPropagation()} onClick={() => { setSelectedContextDtId(dt.id); setSelectedTargetId(dt.id); }}><title>{`Transformer ${dt.id}\nCapacity: ${dt.capacityKva} kVA`}</title></rect>)}
             {gridState.poles.map(pole => <circle key={pole.id} className={`${styles.pole} ${getPoleClass(pole.state, pole.id)} ${selectedTargetId === pole.id ? styles.selectedPole : ''}`} cx={scaleX(pole.lon)} cy={scaleY(pole.lat)} r={faultPoleIds.has(pole.id) ? 3.1 : selectedTargetId === pole.id ? 3.2 : 1.75} filter={faultPoleIds.has(pole.id) ? 'url(#faultGlow)' : undefined} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setSelectedTargetId(pole.id); setSelectedContextDtId(pole.dtId); }}><title>{`Pole ${pole.id}\nStatus: ${pole.state}\nTransformer: ${pole.dtId}`}</title></circle>)}
           </g>
         </g>

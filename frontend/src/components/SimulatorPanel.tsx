@@ -33,9 +33,24 @@ export function SimulatorPanel() {
   return <section className={styles.panel}>
     <div className={styles.panelHeading}><div><p className={styles.overline}>SIMULATION LAB</p><h2>Fault controls</h2></div><span className={`${styles.connection} ${isConnected ? styles.online : ''}`}><CircleDotDashed size={14}/>{isConnected ? 'Online' : 'Offline'}</span></div>
     <div className={styles.notice}><AlertTriangle size={15}/><span>Use simulations to validate response workflows. Changes stream live.</span></div>
-    <div className={styles.formGroup}><label htmlFor="fault-type">Scenario type</label><div className={styles.selectWrap}><select id="fault-type" value={type} onChange={e => setType(e.target.value as typeof type)}><option value="span">Span interruption</option><option value="dt">Transformer outage</option><option value="feeder">Feeder outage</option></select><ChevronDown size={15}/></div></div>
+    <div className={styles.formGroup}><label htmlFor="fault-type">Scenario type</label><div className={styles.selectWrap}><select id="fault-type" value={type} onChange={e => { const v = e.target.value as typeof type; setType(v); if (v === 'feeder' && !targetId.startsWith('F-')) setTargetId('F-01'); }}><option value="span">Span interruption</option><option value="dt">Transformer outage</option><option value="feeder">Feeder outage</option></select><ChevronDown size={15}/></div></div>
     {type === 'span' && <div className={styles.formGroup}><label htmlFor="dt-id">Transformer context</label><input id="dt-id" value={dtId} onChange={e => setDtId(e.target.value)} placeholder="e.g. D-0001" /></div>}
-    <div className={styles.formGroup}><label htmlFor="target-id">Target asset</label><input id="target-id" value={targetId} onChange={e => setTargetId(e.target.value)} placeholder={type === 'span' ? 'e.g. P-0010' : 'e.g. D-0001'} /><small>{selectedText}</small></div>
+    <div className={styles.formGroup}>
+      <label htmlFor="target-id">Target asset</label>
+      {type === 'feeder' ? (
+        <div className={styles.selectWrap}>
+          <select id="target-id" value={targetId} onChange={e => setTargetId(e.target.value)}>
+            <option value="F-01">Feeder 1 (F-01)</option>
+            <option value="F-02">Feeder 2 (F-02)</option>
+            <option value="F-03">Feeder 3 (F-03)</option>
+          </select>
+          <ChevronDown size={15}/>
+        </div>
+      ) : (
+        <input id="target-id" value={targetId} onChange={e => setTargetId(e.target.value)} placeholder={type === 'span' ? 'e.g. P-0010' : 'e.g. D-0001'} />
+      )}
+      <small>{selectedText}</small>
+    </div>
     <div className={styles.actions}><button onClick={handleInject} disabled={isSubmitting} className={styles.inject}><Play size={15} fill="currentColor"/>{isSubmitting ? 'Working…' : 'Run simulation'}</button><button onClick={handleRepair} disabled={!activeFaultId || isSubmitting} className={styles.repair}><Wrench size={15}/>Repair</button></div>
     {(activeFaultId || message) && <div className={`${styles.feedback} ${activeFaultId ? styles.active : ''}`}>{activeFaultId ? <AlertTriangle size={15}/> : <Check size={15}/>}<span>{message || `Active test: ${activeFaultId?.slice(0, 18)}…`}</span></div>}
   </section>;
