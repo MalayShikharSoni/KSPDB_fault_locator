@@ -2,7 +2,7 @@
 
 A real-time telemetry ingestion and fault localization engine for the Karnataka State Power Distribution Board (KSPDB) low-tension grid.
 
-**Live Application URL:** [Insert Render/Railway/Vercel URL here if applicable]
+**Live Application URL:** [https://kspdb-fault-locator-h2ut-three.vercel.app/](https://kspdb-fault-locator-h2ut-three.vercel.app/)
 *(Note for Reviewers: The live application is hosted on a free tier. If the application takes a moment to load or the SSE stream takes up to 60 seconds to connect initially, it is because the backend is waking up from a cold start. Please allow up to a minute for the instance to boot!)*
 **Demo Video:** [Demonstration Video](https://drive.google.com/file/d/1tBT5Iek43cpdfZh3gvwkWS7LiL3vIytJ/view?usp=sharing)
 
