@@ -10,11 +10,20 @@ export function SimulatorPanel() {
   const [dtId, setDtId] = useState('');
   const [activeFaultId, setActiveFaultId] = useState<string | null>(null);
   
-  const { isConnected } = useStore();
+  const { isConnected, selectedTargetId, selectedContextDtId } = useStore();
+
+  React.useEffect(() => {
+    if (selectedTargetId) setTargetId(selectedTargetId);
+  }, [selectedTargetId]);
+
+  React.useEffect(() => {
+    if (selectedContextDtId) setDtId(selectedContextDtId);
+  }, [selectedContextDtId]);
 
   const handleInject = async () => {
     try {
-      const res = await axios.post('/api/simulate/fault', {
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      const res = await axios.post(`${API_URL}/api/simulate/fault`, {
         type,
         targetId,
         ...(type === 'span' && { dtId })
@@ -29,7 +38,8 @@ export function SimulatorPanel() {
   const handleRepair = async () => {
     if (!activeFaultId) return;
     try {
-      await axios.post('/api/simulate/repair', { faultId: activeFaultId });
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      await axios.post(`${API_URL}/api/simulate/repair`, { faultId: activeFaultId });
       setActiveFaultId(null);
     } catch (e) {
       console.error(e);

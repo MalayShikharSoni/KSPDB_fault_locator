@@ -59,6 +59,10 @@ interface StoreState {
   gridState: GridStateData | null;
   activeIncidents: ActiveIncidentsData | null;
   isConnected: boolean;
+  selectedTargetId: string | null;
+  selectedContextDtId: string | null;
+  setSelectedTargetId: (id: string | null) => void;
+  setSelectedContextDtId: (id: string | null) => void;
   initStream: () => void;
 }
 
@@ -66,9 +70,15 @@ export const useStore = create<StoreState>((set) => ({
   gridState: null,
   activeIncidents: null,
   isConnected: false,
+  selectedTargetId: null,
+  selectedContextDtId: null,
+  
+  setSelectedTargetId: (id) => set({ selectedTargetId: id }),
+  setSelectedContextDtId: (id) => set({ selectedContextDtId: id }),
   
   initStream: () => {
-    const eventSource = new EventSource('/api/stream/state');
+    const API_URL = import.meta.env.VITE_API_URL || '';
+    const eventSource = new EventSource(`${API_URL}/api/stream/state`);
     
     eventSource.onmessage = (event) => {
       try {
