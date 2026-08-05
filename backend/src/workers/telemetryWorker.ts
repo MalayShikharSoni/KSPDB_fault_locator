@@ -7,11 +7,13 @@ import { db } from '../db';
 import { poles } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
-export const connection = new IORedis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  maxRetriesPerRequest: null,
-});
+export const connection = process.env.REDIS_URL
+  ? new IORedis(process.env.REDIS_URL, { maxRetriesPerRequest: null })
+  : new IORedis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      maxRetriesPerRequest: null,
+    });
 
 export const telemetryWorker = new Worker('telemetry-ingest', async (job: Job) => {
   const payload = job.data as TelemetryPayload;
